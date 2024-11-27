@@ -1,7 +1,9 @@
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
-import '../blocs/vehicle_bloc.dart';
+import '../blocs/vehicle/vehicle_bloc.dart';
+import '../blocs/vehicle/vehicle_event.dart';
 import '../models/expense.dart';
 import '../models/vehicle.dart';
 import 'dart:io';
@@ -58,11 +60,11 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
   void _saveExpense() {
     final expense = Expense(
       id: DateTime.now().toString(),
-      vehicleId: widget.vehicle.id,
+      vehicleId: widget.vehicle.id!,
       type: typeController.text,
       cost: double.tryParse(costController.text) ?? 0.0,
       date: selectedDate,
-      imagePath: _selectedImage?.path, // Enregistrer le chemin de l'image
+      imagePath: _selectedImage?.path,
     );
 
     context.read<VehicleBloc>().add(AddExpense(expense));
@@ -89,7 +91,8 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
             const SizedBox(height: 16),
             TextButton(
               onPressed: () => _selectDate(context),
-              child: Text('Sélectionner la date: ${selectedDate.toLocal()}'.split(' ')[0]),
+              child:
+              Text('Sélectionner la date: ${selectedDate.toLocal()}'.split(' ')[0]),
             ),
             const SizedBox(height: 16),
             Row(

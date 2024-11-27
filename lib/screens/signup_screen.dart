@@ -1,4 +1,10 @@
+// lib/screens/signup_screen.dart
+
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../blocs/signup/signup_bloc.dart';
+import '../blocs/signup/signup_event.dart';
+import '../blocs/signup/signup_state.dart';
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({Key? key}) : super(key: key);
@@ -8,28 +14,16 @@ class SignupScreen extends StatefulWidget {
 }
 
 class _SignupScreenState extends State<SignupScreen> {
-  final TextEditingController usernameController = TextEditingController();
+  final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
-  final TextEditingController confirmPasswordController = TextEditingController();
-  String? errorMessage;
 
-  void _createAccount() {
-    final username = usernameController.text;
-    final password = passwordController.text;
-    final confirmPassword = confirmPasswordController.text;
+  void _onSignupButtonPressed() {
+    final email = emailController.text.trim();
+    final password = passwordController.text.trim();
 
-    if (password != confirmPassword) {
-      setState(() {
-        errorMessage = 'Les mots de passe ne correspondent pas';
-      });
-    } else if (username.isNotEmpty && password.isNotEmpty) {
-      // Logique d'inscription (pour l'instant, simplement rediriger vers LoginScreen)
-      Navigator.of(context).pop();
-    } else {
-      setState(() {
-        errorMessage = 'Veuillez remplir tous les champs';
-      });
-    }
+    context.read<SignupBloc>().add(
+      SignupButtonPressed(email: email, password: password),
+    );
   }
 
   @override
@@ -39,43 +33,55 @@ class _SignupScreenState extends State<SignupScreen> {
         title: const Text('Créer un compte'),
         backgroundColor: Colors.blueAccent,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            TextField(
-              controller: usernameController,
-              decoration: const InputDecoration(labelText: 'Nom d\'utilisateur'),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: passwordController,
-              decoration: const InputDecoration(labelText: 'Mot de passe'),
-              obscureText: true,
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: confirmPasswordController,
-              decoration: const InputDecoration(labelText: 'Confirmez le mot de passe'),
-              obscureText: true,
-            ),
-            const SizedBox(height: 16),
-            if (errorMessage != null)
-              Text(
-                errorMessage!,
-                style: const TextStyle(color: Colors.red),
+      body: BlocListener<SignupBloc, SignupState>(
+        listener: (context, state) {
+          if (state is SignupFailure) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Erreur : ${state.error}')),
+            );
+          } else if (state is SignupSuccess) {
+            Navigator.of(context).pop(); // Retour à l'écran précédent
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Compte créé avec succès')),
+            );
+          }
+        },
+        child: BlocBuilder<SignupBloc, SignupState>(
+          builder: (context, state) {
+            if (state is SignupLoading) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            return Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  TextField(
+                    controller: emailController,
+                    decoration:
+                    const InputDecoration(labelText: 'Adresse e-mail'),
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: passwordController,
+                    decoration:
+                    const InputDecoration(labelText: 'Mot de passe'),
+                    obscureText: true,
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: _onSignupButtonPressed,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blueAccent,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 32, vertical: 12),
+                    ),
+                    child: const Text('Créer un compte'),
+                  ),
+                ],
               ),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: _createAccount,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blueAccent,
-                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
-              ),
-              child: const Text('Créer un compte'),
-            ),
-          ],
+            );
+          },
         ),
       ),
     );

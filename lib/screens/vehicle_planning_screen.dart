@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../blocs/vehicle_bloc.dart';
+import '../blocs/vehicle/vehicle_bloc.dart';
+import '../blocs/vehicle/vehicle_event.dart';
+import '../blocs/vehicle/vehicle_state.dart';
 import '../models/planning.dart';
 import '../models/vehicle.dart';
 import 'add_planning_screen.dart';
@@ -14,7 +16,7 @@ class VehiclePlanningScreen extends StatelessWidget {
   void _removePlanning(BuildContext context, String planningId) {
     context.read<VehicleBloc>().add(RemovePlanning(
       planningId: planningId,
-      vehicleId: vehicle.id,
+      vehicleId: vehicle.id!,
     ));
   }
 
@@ -26,47 +28,50 @@ class VehiclePlanningScreen extends StatelessWidget {
       ),
       body: BlocBuilder<VehicleBloc, VehicleState>(
         builder: (context, state) {
-          final plannings = state.plannings[vehicle.id] ?? [];
+          if (state is VehicleLoaded) {
+            final plannings = state.plannings[vehicle.id] ?? [];
 
-          if (plannings.isEmpty) {
-            return const Center(child: Text('Aucune planification ajoutée.'));
-          }
+            if (plannings.isEmpty) {
+              return const Center(child: Text('Aucune planification ajoutée.'));
+            }
 
-          return ListView.builder(
-            itemCount: plannings.length,
-            itemBuilder: (context, index) {
-              final planning = plannings[index];
-              return Card(
-                child: ListTile(
-                  title: Text(planning.type),
-                  subtitle: Text(
-                      'Date : ${planning.date.toLocal().toString().split(' ')[0]}'),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      planning.sendNotification
-                          ? const Icon(Icons.notifications_active, color: Colors.blue)
-                          : const Icon(Icons.notifications_off, color: Colors.grey),
-                      IconButton(
-                        icon: const Icon(Icons.delete, color: Colors.red),
-                        onPressed: () => _removePlanning(context, planning.id),
-                      ),
-                    ],
+            return ListView.builder(
+              itemCount: plannings.length,
+              itemBuilder: (context, index) {
+                final planning = plannings[index];
+                return Card(
+                  child: ListTile(
+                    title: Text(planning.type),
+                    subtitle: Text(
+                        'Date : ${planning.date.toLocal().toString().split(' ')[0]}'),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        planning.sendNotification
+                            ? const Icon(Icons.notifications_active, color: Colors.blue)
+                            : const Icon(Icons.notifications_off, color: Colors.grey),
+                        IconButton(
+                          icon: const Icon(Icons.delete, color: Colors.red),
+                          onPressed: () => _removePlanning(context, planning.id!),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              );
-            },
-          );
+                );
+              },
+            );
+          } else if (state is VehicleLoading) {
+            return const Center(child: CircularProgressIndicator());
+          } else {
+            return const Center(child: Text('Chargement...'));
+          }
         },
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           Navigator.of(context).push(
             MaterialPageRoute(
-              builder: (_) => BlocProvider.value(
-                value: context.read<VehicleBloc>(),
-                child: AddPlanningScreen(vehicle: vehicle),
-              ),
+              builder: (_) => AddPlanningScreen(vehicle: vehicle),
             ),
           );
         },

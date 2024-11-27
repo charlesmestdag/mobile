@@ -1,6 +1,9 @@
+// lib/screens/edit_vehicle_screen.dart
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../blocs/vehicle_bloc.dart';
+import '../blocs/vehicle/vehicle_bloc.dart';
+import '../blocs/vehicle/vehicle_event.dart';
 import '../models/vehicle.dart';
 
 class EditVehicleScreen extends StatefulWidget {
@@ -35,8 +38,15 @@ class _EditVehicleScreenState extends State<EditVehicleScreen> {
 
     context.read<VehicleBloc>().add(UpdateVehicle(updatedVehicle));
 
-    // Retourne directement à VehicleListScreen
-    Navigator.of(context).popUntil((route) => route.isFirst);
+    Navigator.of(context).pop();
+  }
+
+  @override
+  void dispose() {
+    marqueController.dispose();
+    modeleController.dispose();
+    anneeController.dispose();
+    super.dispose();
   }
 
   @override

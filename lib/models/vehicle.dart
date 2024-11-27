@@ -1,28 +1,41 @@
-// models/vehicle.dart
-class Vehicle {
-  final String id;
+// lib/models/vehicle.dart
+
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:equatable/equatable.dart';
+
+class Vehicle extends Equatable {
+  final String? id;
   final String marque;
   final String modele;
   final int annee;
 
-  Vehicle({
-    required this.id,
+  const Vehicle({
+    this.id,
     required this.marque,
     required this.modele,
     required this.annee,
   });
 
-  // Ajoutez la méthode copyWith
-  Vehicle copyWith({
-    String? marque,
-    String? modele,
-    int? annee,
-  }) {
+  // Conversion depuis un DocumentSnapshot
+  factory Vehicle.fromSnapshot(DocumentSnapshot<Map<String, dynamic>> snapshot) {
+    final data = snapshot.data()!;
     return Vehicle(
-      id: id, // Gardez l'ID inchangé
-      marque: marque ?? this.marque,
-      modele: modele ?? this.modele,
-      annee: annee ?? this.annee,
+      id: snapshot.id,
+      marque: data['marque'],
+      modele: data['modele'],
+      annee: data['annee'],
     );
   }
+
+  // Conversion vers Map pour Firestore
+  Map<String, dynamic> toMap() {
+    return {
+      'marque': marque,
+      'modele': modele,
+      'annee': annee,
+    };
+  }
+
+  @override
+  List<Object?> get props => [id, marque, modele, annee];
 }

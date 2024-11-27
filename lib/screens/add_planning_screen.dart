@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../blocs/vehicle_bloc.dart';
-import '../models/planning.dart';
 import '../models/vehicle.dart';
-import '../services/notification_service.dart';
+import '../models/planning.dart';
+import '../blocs/vehicle/vehicle_bloc.dart';
+import '../blocs/vehicle/vehicle_event.dart';
 
 class AddPlanningScreen extends StatefulWidget {
   final Vehicle vehicle;
@@ -20,13 +20,13 @@ class _AddPlanningScreenState extends State<AddPlanningScreen> {
   bool sendNotification = false;
 
   Future<void> _selectDate(BuildContext context) async {
-    final DateTime? picked = await showDatePicker(
+    final picked = await showDatePicker(
       context: context,
       initialDate: selectedDate,
       firstDate: DateTime.now(),
       lastDate: DateTime(2101),
     );
-    if (picked != null && picked != selectedDate) {
+    if (picked != null) {
       setState(() {
         selectedDate = picked;
       });
@@ -34,25 +34,22 @@ class _AddPlanningScreenState extends State<AddPlanningScreen> {
   }
 
   void _savePlanning() {
+    if (typeController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Le type de planification est requis')),
+      );
+      return;
+    }
+
     final planning = Planning(
       id: DateTime.now().toString(),
-      vehicleId: widget.vehicle.id,
+      vehicleId: widget.vehicle.id!,
       type: typeController.text,
       date: selectedDate,
       sendNotification: sendNotification,
     );
 
     context.read<VehicleBloc>().add(AddPlanning(planning));
-
-    // Programmer une notification si l'utilisateur a choisi cette option
-    if (sendNotification) {
-      NotificationService().scheduleNotification(
-        planning.hashCode, // Utiliser l'ID unique du planning comme identifiant
-        'Rappel de planification',
-        'La planification pour ${planning.type} est prévue pour aujourd\'hui.',
-        selectedDate,
-      );
-    }
 
     Navigator.of(context).pop();
   }
@@ -67,19 +64,18 @@ class _AddPlanningScreenState extends State<AddPlanningScreen> {
           children: [
             TextField(
               controller: typeController,
-              decoration:
-              const InputDecoration(labelText: 'Type de planification'),
+              decoration: const InputDecoration(labelText: 'Type de planification'),
             ),
             const SizedBox(height: 16),
             TextButton(
               onPressed: () => _selectDate(context),
-              child: Text(
-                  'Sélectionner la date: ${selectedDate.toLocal()}'.split(' ')[0]),
+              child: Text('Sélectionner la date : ${selectedDate.toLocal()}'.split(' ')[0]),
             ),
             const SizedBox(height: 16),
             Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text('Envoyer une notification:'),
+                const Text('Envoyer une notification :'),
                 Switch(
                   value: sendNotification,
                   onChanged: (value) {

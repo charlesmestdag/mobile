@@ -1,6 +1,9 @@
+// lib/screens/add_vehicle_screen.dart
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../blocs/vehicle_bloc.dart';
+import '../blocs/vehicle/vehicle_bloc.dart';
+import '../blocs/vehicle/vehicle_event.dart';
 import '../models/vehicle.dart';
 
 class AddVehicleScreen extends StatelessWidget {
@@ -9,6 +12,25 @@ class AddVehicleScreen extends StatelessWidget {
   final TextEditingController anneeController = TextEditingController();
 
   AddVehicleScreen({Key? key}) : super(key: key);
+
+  void _addVehicle(BuildContext context) {
+    final marque = marqueController.text;
+    final modele = modeleController.text;
+    final annee = int.tryParse(anneeController.text);
+
+    if (marque.isNotEmpty && modele.isNotEmpty && annee != null) {
+      final newVehicle = Vehicle(
+        // Laissez l'ID vide pour que Firestore le génère
+        marque: marque,
+        modele: modele,
+        annee: annee,
+      );
+
+      context.read<VehicleBloc>().add(AddVehicle(newVehicle));
+
+      Navigator.of(context).pop();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -33,26 +55,7 @@ class AddVehicleScreen extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             ElevatedButton(
-              onPressed: () {
-                final marque = marqueController.text;
-                final modele = modeleController.text;
-                final annee = int.tryParse(anneeController.text);
-
-                if (marque.isNotEmpty && modele.isNotEmpty && annee != null) {
-                  final newVehicle = Vehicle(
-                    id: DateTime.now().toString(),
-                    marque: marque,
-                    modele: modele,
-                    annee: annee,
-                  );
-
-                  // Envoie de l'événement AddVehicle au bloc
-                  context.read<VehicleBloc>().add(AddVehicle(newVehicle));
-
-                  // Retour à l'écran précédent après l'ajout
-                  Navigator.of(context).pop();
-                }
-              },
+              onPressed: () => _addVehicle(context),
               child: const Text('Ajouter le véhicule'),
             ),
           ],
