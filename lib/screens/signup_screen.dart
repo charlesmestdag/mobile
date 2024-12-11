@@ -16,13 +16,19 @@ class SignupScreen extends StatefulWidget {
 class _SignupScreenState extends State<SignupScreen> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+  final TextEditingController confirmPasswordController = TextEditingController();
 
   void _onSignupButtonPressed() {
     final email = emailController.text.trim();
     final password = passwordController.text.trim();
+    final confirmPassword = confirmPasswordController.text.trim();
 
     context.read<SignupBloc>().add(
-      SignupButtonPressed(email: email, password: password),
+      SignupButtonPressed(
+        email: email,
+        password: password,
+        confirmPassword: confirmPassword,
+      ),
     );
   }
 
@@ -66,6 +72,13 @@ class _SignupScreenState extends State<SignupScreen> {
                     controller: passwordController,
                     decoration:
                     const InputDecoration(labelText: 'Mot de passe'),
+                    obscureText: true,
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: confirmPasswordController,
+                    decoration: const InputDecoration(
+                        labelText: 'Confirmez le mot de passe'),
                     obscureText: true,
                   ),
                   const SizedBox(height: 16),

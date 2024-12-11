@@ -12,9 +12,23 @@ class SignupBloc extends Bloc<SignupEvent, SignupState> {
     on<SignupButtonPressed>(_onSignupButtonPressed);
   }
 
-  Future<void> _onSignupButtonPressed(
-      SignupButtonPressed event, Emitter<SignupState> emit) async {
+  Future<void> _onSignupButtonPressed(SignupButtonPressed event,
+      Emitter<SignupState> emit) async {
     emit(SignupLoading());
+
+    // Vérifie que les mots de passe correspondent
+    if (event.password != event.confirmPassword) {
+      emit(SignupFailure(error: 'Les mots de passe ne correspondent pas.'));
+      return;
+    }
+
+    // Vérifie la force du mot de passe
+    if (!_isPasswordStrong(event.password)) {
+      emit(SignupFailure(
+          error: 'Le mot de passe doit contenir au moins 8 caractères, une lettre majuscule, une lettre minuscule et un chiffre.'));
+      return;
+    }
+
     try {
       await authRepository.signUp(
         email: event.email,
@@ -26,9 +40,9 @@ class SignupBloc extends Bloc<SignupEvent, SignupState> {
     }
   }
 
-  @override
-  Future<void> close() {
-    // Fermez les streams ou autres ressources si nécessaire
-    return super.close();
+// Fonction pour vérifier la force du mot de passe
+  bool _isPasswordStrong(String password) {
+    final regex = RegExp(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d]{8,}$');
+    return regex.hasMatch(password);
   }
 }

@@ -26,9 +26,12 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     }
   }
 
+
   @override
   Future<void> close() {
     // Fermez les streams ou autres ressources si nécessaire
     return super.close();
   }
+
+
 }
