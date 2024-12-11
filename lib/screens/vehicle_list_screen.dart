@@ -1,11 +1,13 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_project_q1/blocs/widgets/auth_info.dart';
 import '../blocs/vehicle/vehicle_bloc.dart';
 import '../blocs/vehicle/vehicle_state.dart';
 import '../blocs/vehicle/vehicle_event.dart';
 import 'add_vehicle_screen.dart';
 import 'vehicle_menu_screen.dart';
+import '../widgets/auth_info.dart';
 
 class VehicleListScreen extends StatelessWidget {
   const VehicleListScreen({Key? key}) : super(key: key);
@@ -22,11 +24,42 @@ class VehicleListScreen extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () async {
-              await FirebaseAuth.instance.signOut();
-              Navigator.of(context).pushReplacementNamed('/login');
+              try {
+                await FirebaseAuth.instance.signOut();
+                Navigator.of(context).pushReplacementNamed('/login');
+              } catch (e) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Erreur de déconnexion : $e')),
+                );
+              }
             },
           ),
         ],
+      ),
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: [
+            DrawerHeader(
+              decoration: const BoxDecoration(color: Colors.blue),
+              child: const auth_info(), // Utilise ton widget AuthInfo
+            ),
+            ListTile(
+              leading: const Icon(Icons.logout),
+              title: const Text('Déconnexion'),
+              onTap: () async {
+                try {
+                  await FirebaseAuth.instance.signOut();
+                  Navigator.of(context).pushReplacementNamed('/login');
+                } catch (e) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Erreur de déconnexion : $e')),
+                  );
+                }
+              },
+            ),
+          ],
+        ),
       ),
       body: BlocBuilder<VehicleBloc, VehicleState>(
         builder: (context, state) {

@@ -3,13 +3,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'firebase_options.dart'; // Import nécessaire pour Firebase options
+import 'firebase_options.dart';
 
 import 'blocs/login/login_bloc.dart';
 import 'blocs/vehicle/vehicle_bloc.dart';
 import 'repositories/auth_repository.dart';
 import 'repositories/vehicle_repository.dart'; // Import du VehicleRepository
 import 'screens/login_screen.dart';
+import 'screens/vehicle_list_screen.dart';
 import 'services/notification_service.dart';
 
 void main() async {
@@ -50,6 +51,11 @@ class MyApp extends StatelessWidget {
         theme: ThemeData(
           primarySwatch: Colors.blue,
         ),
+        initialRoute: '/login',
+        routes: {
+          '/login': (context) => const LoginScreen(), // Définit la route /login
+          '/vehicleList': (context) => const VehicleListScreen(), // Route vers l'écran des véhicules
+        },
         builder: (context, child) {
           return MultiBlocProvider(
             providers: [
@@ -63,12 +69,10 @@ class MyApp extends StatelessWidget {
                   authRepository: authRepository,
                 ),
               ),
-              // Le SignupBloc sera fourni lors de la navigation vers le SignupScreen
             ],
             child: child!,
           );
         },
-        home: const LoginScreen(),
       ),
     );
   }
