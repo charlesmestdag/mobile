@@ -1,5 +1,6 @@
 // lib/screens/vehicle_list_screen.dart
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../blocs/vehicle/vehicle_bloc.dart';
@@ -20,7 +21,19 @@ class VehicleListScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Charger les véhicules au chargement de l'écran
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (user == null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Navigator.of(context).pushReplacementNamed(
+            '/login'); // Redirige vers la page de connexion
+      });
+      return const Center(
+        child: CircularProgressIndicator(),
+      );
+    }
+
+    // Charger les véhicules après avoir confirmé que l'utilisateur est connecté
     context.read<VehicleBloc>().add(LoadVehicles());
 
     return Scaffold(
@@ -29,7 +42,11 @@ class VehicleListScreen extends StatelessWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
-            onPressed: () => _logout(context),
+            onPressed: () async {
+              await FirebaseAuth.instance.signOut();
+              Navigator.of(context).pushReplacementNamed(
+                  '/login'); // Redirige après déconnexion
+            },
           ),
         ],
       ),
@@ -40,7 +57,8 @@ class VehicleListScreen extends StatelessWidget {
           } else if (state is VehicleLoaded) {
             if (state.vehicles.isEmpty) {
               return const Center(
-                child: Text('Aucun véhicule ajouté.'),
+                child: Text(
+                    'Aucun véhicule trouvé. Ajoutez-en un pour commencer.'),
               );
             }
 
@@ -51,13 +69,6 @@ class VehicleListScreen extends StatelessWidget {
                 return ListTile(
                   title: Text('${vehicle.marque} ${vehicle.modele}'),
                   subtitle: Text('Année : ${vehicle.annee}'),
-                  onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => VehicleMenuScreen(vehicle: vehicle),
-                      ),
-                    );
-                  },
                 );
               },
             );
@@ -67,21 +78,10 @@ class VehicleListScreen extends StatelessWidget {
             );
           } else {
             return const Center(
-              child: Text('Aucun véhicule ajouté.'),
+              child: Text('Une erreur inconnue est survenue.'),
             );
           }
         },
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (_) => AddVehicleScreen(),
-            ),
-          );
-        },
-        tooltip: 'Ajouter un véhicule',
-        child: const Icon(Icons.add),
       ),
     );
   }

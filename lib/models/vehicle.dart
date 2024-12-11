@@ -1,5 +1,3 @@
-// lib/models/vehicle.dart
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:equatable/equatable.dart';
 
@@ -21,9 +19,9 @@ class Vehicle extends Equatable {
     final data = snapshot.data()!;
     return Vehicle(
       id: snapshot.id,
-      marque: data['marque'],
-      modele: data['modele'],
-      annee: data['annee'],
+      marque: data['marque'] ?? 'Inconnu',
+      modele: data['modele'] ?? 'Inconnu',
+      annee: (data['annee'] ?? 0).toInt(),
     );
   }
 
@@ -34,6 +32,25 @@ class Vehicle extends Equatable {
       'modele': modele,
       'annee': annee,
     };
+  }
+
+  // Conversion JSON (facultatif)
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'marque': marque,
+      'modele': modele,
+      'annee': annee,
+    };
+  }
+
+  factory Vehicle.fromJson(Map<String, dynamic> json) {
+    return Vehicle(
+      id: json['id'],
+      marque: json['marque'],
+      modele: json['modele'],
+      annee: json['annee'],
+    );
   }
 
   @override
