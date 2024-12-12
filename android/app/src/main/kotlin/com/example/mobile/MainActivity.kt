@@ -1,4 +1,4 @@
-package com.example.flutter_project_q1
+package com.example.mobile
 
 import io.flutter.embedding.android.FlutterActivity
 
