@@ -8,20 +8,25 @@ import 'firebase_options.dart';
 import 'blocs/login/login_bloc.dart';
 import 'blocs/vehicle/vehicle_bloc.dart';
 import 'repositories/auth_repository.dart';
-import 'repositories/vehicle_repository.dart'; // Import du VehicleRepository
+import 'repositories/vehicle_repository.dart';
 import 'screens/login_screen.dart';
 import 'screens/vehicle_list_screen.dart';
 import 'services/notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform, // Initialisation avec les options
-  );
-  await NotificationService().init(); // Initialiser les notifications
 
+  // Initialisation de Firebase
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
+  // Initialisation des notifications
+  await NotificationService().init();
+
+  // Création des instances des repositories
   final authRepository = AuthRepository();
-  final vehicleRepository = VehicleRepository(); // Création du VehicleRepository
+  final vehicleRepository = VehicleRepository();
 
   runApp(MyApp(
     authRepository: authRepository,
@@ -43,36 +48,38 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiRepositoryProvider(
       providers: [
-        RepositoryProvider.value(value: authRepository),
-        RepositoryProvider.value(value: vehicleRepository),
+        // Fourniture du AuthRepository
+        RepositoryProvider<AuthRepository>.value(value: authRepository),
+        // Fourniture du VehicleRepository
+        RepositoryProvider<VehicleRepository>.value(value: vehicleRepository),
       ],
-      child: MaterialApp(
-        title: 'Application de suivi de véhicule',
-        theme: ThemeData(
-          primarySwatch: Colors.blue,
+      child: MultiBlocProvider(
+        providers: [
+          // Fourniture du LoginBloc
+          BlocProvider<LoginBloc>(
+            create: (context) => LoginBloc(
+              authRepository: authRepository,
+            ),
+          ),
+          // Fourniture du VehicleBloc et déclenchement de l'événement LoadVehicles
+          BlocProvider<VehicleBloc>(
+            create: (context) => VehicleBloc(
+              vehicleRepository: vehicleRepository,
+            )..add(LoadVehicles()),
+          ),
+        ],
+        child: MaterialApp(
+          title: 'Application de suivi de véhicule',
+          debugShowCheckedModeBanner: false, // Suppression du banner DEBUG
+          theme: ThemeData(
+            primarySwatch: Colors.blue,
+          ),
+          initialRoute: '/login',
+          routes: {
+            '/login': (context) => const LoginScreen(), // Route vers l'écran de login
+            '/vehicleList': (context) => const VehicleListScreen(), // Route vers la liste des véhicules
+          },
         ),
-        initialRoute: '/login',
-        routes: {
-          '/login': (context) => const LoginScreen(), // Définit la route /login
-          '/vehicleList': (context) => const VehicleListScreen(), // Route vers l'écran des véhicules
-        },
-        builder: (context, child) {
-          return MultiBlocProvider(
-            providers: [
-              BlocProvider<VehicleBloc>(
-                create: (context) => VehicleBloc(
-                  vehicleRepository: vehicleRepository,
-                ),
-              ),
-              BlocProvider<LoginBloc>(
-                create: (context) => LoginBloc(
-                  authRepository: authRepository,
-                ),
-              ),
-            ],
-            child: child!,
-          );
-        },
       ),
     );
   }
