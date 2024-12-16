@@ -17,7 +17,7 @@ import 'expense_detail_screen.dart';
 class VehicleDetailScreen extends StatelessWidget {
   final Vehicle vehicle;
 
-  const VehicleDetailScreen({Key? key, required this.vehicle}) : super(key: key);
+  const VehicleDetailScreen({super.key, required this.vehicle});
 
   Future<void> generatePdf(BuildContext context, Vehicle vehicle, List<Expense> expenses) async {
     final pdf = pw.Document();
@@ -80,19 +80,9 @@ class VehicleDetailScreen extends StatelessWidget {
                   }
                 },
                 tooltip: 'Exporter en PDF',
+
               );
             },
-          ),
-          IconButton(
-            icon: const Icon(Icons.edit),
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => EditVehicleScreen(vehicle: vehicle),
-                ),
-              );
-            },
-            tooltip: 'Modifier les informations du véhicule',
           ),
         ],
       ),
@@ -111,9 +101,9 @@ class VehicleDetailScreen extends StatelessWidget {
                   Text('Modèle : ${vehicle.modele}', style: const TextStyle(fontSize: 18)),
                   Text('Année : ${vehicle.annee}', style: const TextStyle(fontSize: 18)),
                   const SizedBox(height: 16),
-                  Text(
+                  const Text(
                     'Historique des Factures',
-                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
                   Expanded(
                     child: expenses.isEmpty

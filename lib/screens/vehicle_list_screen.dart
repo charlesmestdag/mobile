@@ -6,6 +6,7 @@ import '../blocs/vehicle/vehicle_bloc.dart';
 import 'add_vehicle_screen.dart';
 import 'vehicle_menu_screen.dart';
 import '../widgets/auth_info.dart';
+import 'edit_vehicle_screen.dart'; // Assurez-vous d'importer l'écran d'édition
 
 class VehicleListScreen extends StatelessWidget {
   const VehicleListScreen({Key? key}) : super(key: key);
@@ -19,19 +20,26 @@ class VehicleListScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Mes Véhicules'),
         actions: [
+          // Option 1 : Remplacer le bouton de déconnexion par un bouton modifier global
+          /*
           IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () async {
-              try {
-                await FirebaseAuth.instance.signOut();
-                Navigator.of(context).pushReplacementNamed('/login');
-              } catch (e) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Erreur de déconnexion : $e')),
-                );
-              }
+            icon: const Icon(Icons.edit),
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => EditGlobalVehicleScreen(), // Créez cet écran si nécessaire
+                ),
+              );
             },
+            tooltip: 'Modifier les véhicules',
           ),
+          */
+
+          // Option 2 : Conserver le bouton de déconnexion et ajouter un bouton modifier global
+          // Vous pouvez choisir l'une des options ci-dessus selon vos besoins
+
+          // Si vous souhaitez seulement remplacer le bouton de déconnexion, décommentez l'option 1
+          // Sinon, vous pouvez conserver le bouton de déconnexion et ajouter des boutons d'édition par élément
         ],
       ),
       drawer: Drawer(
@@ -76,6 +84,17 @@ class VehicleListScreen extends StatelessWidget {
                 return ListTile(
                   title: Text('${vehicle.marque} ${vehicle.modele}'),
                   subtitle: Text('Année : ${vehicle.annee}'),
+                  trailing: IconButton(
+                    icon: const Icon(Icons.edit),
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => EditVehicleScreen(vehicle: vehicle),
+                        ),
+                      );
+                    },
+                    tooltip: 'Modifier ce véhicule',
+                  ),
                   onTap: () {
                     Navigator.of(context).push(
                       MaterialPageRoute(
