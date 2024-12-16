@@ -22,6 +22,8 @@ class VehicleBloc extends Bloc<VehicleEvent, VehicleState> {
     on<AddPlanning>(_onAddPlanning);
     on<RemovePlanning>(_onRemovePlanning);
     on<LoadPlannings>(_onLoadPlannings);
+    on<UpdateExpense>(_onUpdateExpense);
+
     // Ajoutez d'autres gestionnaires d'événements si nécessaire
   }
 
@@ -137,6 +139,8 @@ class VehicleBloc extends Bloc<VehicleEvent, VehicleState> {
     }
   }
 
+
+
   Future<void> _onLoadPlannings(
       LoadPlannings event, Emitter<VehicleState> emit) async {
     final userId = FirebaseAuth.instance.currentUser?.uid;
@@ -163,4 +167,18 @@ class VehicleBloc extends Bloc<VehicleEvent, VehicleState> {
       emit(VehicleError(error: "Impossible de charger les plannings."));
     }
   }
+
+  Future<void> _onUpdateExpense(UpdateExpense event, Emitter<VehicleState> emit) async {
+    if (state is VehicleLoaded) {
+      try {
+        await vehicleRepository.updateExpense(event.expense);
+        add(LoadVehicles());
+      } catch (e) {
+        emit(VehicleError(error: "Erreur lors de la mise à jour de la dépense."));
+      }
+    }
+  }
+
 }
+
+

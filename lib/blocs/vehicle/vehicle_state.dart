@@ -24,9 +24,17 @@ class VehicleLoaded extends VehicleState {
     required this.plannings,
   });
 
+  double totalCost(String vehicleId) {
+    final vehicleExpenses = expenses[vehicleId] ?? [];
+    return vehicleExpenses.fold(0.0, (sum, expense) => sum + expense.cost);
+  }
+
   @override
   List<Object?> get props => [vehicles, expenses, plannings];
 }
+
+
+
 
 class VehicleError extends VehicleState {
   final String error;

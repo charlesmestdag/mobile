@@ -59,3 +59,12 @@ class LoadPlannings extends VehicleEvent {
   @override
   List<Object?> get props => [vehicleId];
 }
+
+class UpdateExpense extends VehicleEvent {
+  final Expense expense;
+
+  const UpdateExpense(this.expense);
+
+  @override
+  List<Object?> get props => [expense];
+}

@@ -58,6 +58,7 @@ class VehicleDetailScreen extends StatelessWidget {
     await generatePdf(context, vehicle, expenses);
   }
 
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -71,7 +72,6 @@ class VehicleDetailScreen extends StatelessWidget {
                 onPressed: () {
                   if (state is VehicleLoaded) {
                     final expenses = state.expenses[vehicle.id] ?? [];
-                    print("Exporter en PDF - Nombre de dépenses: ${expenses.length}");
                     _exportPdf(context, expenses);
                   } else {
                     ScaffoldMessenger.of(context).showSnackBar(
@@ -80,9 +80,19 @@ class VehicleDetailScreen extends StatelessWidget {
                   }
                 },
                 tooltip: 'Exporter en PDF',
-
               );
             },
+          ),
+          IconButton(
+            icon: const Icon(Icons.edit),
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => EditVehicleScreen(vehicle: vehicle),
+                ),
+              );
+            },
+            tooltip: 'Modifier les informations du véhicule',
           ),
         ],
       ),
@@ -90,7 +100,7 @@ class VehicleDetailScreen extends StatelessWidget {
         builder: (context, state) {
           if (state is VehicleLoaded) {
             final expenses = state.expenses[vehicle.id] ?? [];
-            print("Affichage des dépenses pour le véhicule ID: ${vehicle.id}, Nombre de dépenses: ${expenses.length}");
+            final totalCost = state.totalCost("Bu5KZGg1ZSh2ATRqUasj"); // Calcule le total ici
 
             return Padding(
               padding: const EdgeInsets.all(16.0),
@@ -101,9 +111,14 @@ class VehicleDetailScreen extends StatelessWidget {
                   Text('Modèle : ${vehicle.modele}', style: const TextStyle(fontSize: 18)),
                   Text('Année : ${vehicle.annee}', style: const TextStyle(fontSize: 18)),
                   const SizedBox(height: 16),
-                  const Text(
+                  Text(
+                    'Total des coûts : ${totalCost.toStringAsFixed(2)}€', // Affiche le total
+                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
                     'Historique des Factures',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
                   Expanded(
                     child: expenses.isEmpty
@@ -117,7 +132,6 @@ class VehicleDetailScreen extends StatelessWidget {
                       itemCount: expenses.length,
                       itemBuilder: (context, index) {
                         final expense = expenses[index];
-                        print("Affichage dépense: ${expense.type}, Coût: ${expense.cost}, Date: ${expense.date}");
                         return Card(
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10.0),

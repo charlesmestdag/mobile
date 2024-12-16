@@ -199,5 +199,22 @@ class VehicleRepository {
     }
   }
 
+  Future<void> updateExpense(Expense expense) async {
+    final userId = FirebaseAuth.instance.currentUser?.uid;
+    if (userId != null) {
+      final expenseDoc = _firestore
+          .collection('users')
+          .doc(userId)
+          .collection('vehicles')
+          .doc(expense.vehicleId)
+          .collection('expenses')
+          .doc(expense.id);
+
+      await expenseDoc.update(expense.toMap());
+    } else {
+      throw Exception('Utilisateur non connecté.');
+    }
+  }
+
 // Autres méthodes si nécessaire
 }
