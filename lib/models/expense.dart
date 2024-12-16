@@ -25,9 +25,9 @@ class Expense extends Equatable {
     final data = snapshot.data()!;
     return Expense(
       id: snapshot.id,
-      vehicleId: data['vehicleId'],
-      type: data['type'],
-      cost: data['cost'],
+      vehicleId: data['vehicleId'] ?? '',
+      type: data['type'] ?? '',
+      cost: (data['cost'] as num).toDouble(), // Conversion flexible
       date: (data['date'] as Timestamp).toDate(),
       imagePath: data['imagePath'],
     );
@@ -39,7 +39,7 @@ class Expense extends Equatable {
       'vehicleId': vehicleId,
       'type': type,
       'cost': cost,
-      'date': date,
+      'date': Timestamp.fromDate(date),
       'imagePath': imagePath,
     };
   }

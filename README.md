@@ -16,3 +16,16 @@ For help getting started with Flutter development, view the
 samples, guidance on mobile development, and a full API reference.
 
 GOOD - charles
+
+modifier facture quand je clique sur facture
+afficher total cout historique facture .
+
+gui
+gerer notifications de planning. 
+exportation PDF test andorid 
+
+gerer notifications de planning.
+
+exportation PDF test andorid
+
+"firebase stockage pour image"
