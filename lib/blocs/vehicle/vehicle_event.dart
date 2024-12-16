@@ -1,9 +1,6 @@
 // lib/blocs/vehicle/vehicle_event.dart
 
-import 'package:equatable/equatable.dart';
-import '../../models/vehicle.dart';
-import '../../models/expense.dart';
-import '../../models/planning.dart';
+part of 'vehicle_bloc.dart';
 
 abstract class VehicleEvent extends Equatable {
   const VehicleEvent();
@@ -53,4 +50,12 @@ class RemovePlanning extends VehicleEvent {
 
   @override
   List<Object?> get props => [planningId, vehicleId];
+}
+
+class LoadPlannings extends VehicleEvent {
+  final String vehicleId;
+  const LoadPlannings(this.vehicleId);
+
+  @override
+  List<Object?> get props => [vehicleId];
 }

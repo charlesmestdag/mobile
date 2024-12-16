@@ -8,7 +8,6 @@ import 'package:path_provider/path_provider.dart';
 import 'package:open_file/open_file.dart';
 import 'dart:io';
 import '../blocs/vehicle/vehicle_bloc.dart';
-import '../blocs/vehicle/vehicle_state.dart';
 import '../models/expense.dart';
 import '../models/vehicle.dart';
 import 'add_expense_screen.dart';
@@ -21,7 +20,38 @@ class VehicleDetailScreen extends StatelessWidget {
   const VehicleDetailScreen({Key? key, required this.vehicle}) : super(key: key);
 
   Future<void> generatePdf(BuildContext context, Vehicle vehicle, List<Expense> expenses) async {
-    // Votre code pour générer le PDF reste inchangé
+    final pdf = pw.Document();
+
+    pdf.addPage(
+      pw.Page(
+        build: (pw.Context context) {
+          return pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
+              pw.Text('${vehicle.marque} ${vehicle.modele} (${vehicle.annee})',
+                  style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold)),
+              pw.SizedBox(height: 16),
+              pw.Text('Historique des Dépenses', style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold)),
+              pw.SizedBox(height: 8),
+              pw.Table.fromTextArray(
+                headers: ['Type', 'Coût (€)', 'Date'],
+                data: expenses.map((expense) => [
+                  expense.type,
+                  expense.cost.toStringAsFixed(2),
+                  expense.date.toLocal().toString().split(' ')[0]
+                ]).toList(),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+
+    final output = await getTemporaryDirectory();
+    final file = File("${output.path}/factures_${vehicle.id}.pdf");
+    await file.writeAsBytes(await pdf.save());
+
+    OpenFile.open(file.path);
   }
 
   void _exportPdf(BuildContext context, List<Expense> expenses) async {
@@ -41,6 +71,7 @@ class VehicleDetailScreen extends StatelessWidget {
                 onPressed: () {
                   if (state is VehicleLoaded) {
                     final expenses = state.expenses[vehicle.id] ?? [];
+                    print("Exporter en PDF - Nombre de dépenses: ${expenses.length}");
                     _exportPdf(context, expenses);
                   } else {
                     ScaffoldMessenger.of(context).showSnackBar(
@@ -69,6 +100,7 @@ class VehicleDetailScreen extends StatelessWidget {
         builder: (context, state) {
           if (state is VehicleLoaded) {
             final expenses = state.expenses[vehicle.id] ?? [];
+            print("Affichage des dépenses pour le véhicule ID: ${vehicle.id}, Nombre de dépenses: ${expenses.length}");
 
             return Padding(
               padding: const EdgeInsets.all(16.0),
@@ -95,6 +127,7 @@ class VehicleDetailScreen extends StatelessWidget {
                       itemCount: expenses.length,
                       itemBuilder: (context, index) {
                         final expense = expenses[index];
+                        print("Affichage dépense: ${expense.type}, Coût: ${expense.cost}, Date: ${expense.date}");
                         return Card(
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10.0),

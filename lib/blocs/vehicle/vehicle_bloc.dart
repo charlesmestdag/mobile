@@ -1,23 +1,26 @@
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
+// lib/blocs/vehicle/vehicle_bloc.dart
+
+import 'package:bloc/bloc.dart';
+import 'package:equatable/equatable.dart';
 import '../../models/vehicle.dart';
 import '../../models/expense.dart';
 import '../../models/planning.dart';
 import '../../repositories/vehicle_repository.dart';
-import '../../services/notification_service.dart';
-import 'vehicle_event.dart';
-import 'vehicle_state.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+
+part 'vehicle_event.dart';
+part 'vehicle_state.dart';
 
 class VehicleBloc extends Bloc<VehicleEvent, VehicleState> {
   final VehicleRepository vehicleRepository;
 
-  VehicleBloc({required this.vehicleRepository}) : super(VehicleInitial()) {
+  VehicleBloc({required this.vehicleRepository}) : super(VehicleLoading()) {
     on<LoadVehicles>(_onLoadVehicles);
-    on<AddVehicle>(_onAddVehicle);
-    on<UpdateVehicle>(_onUpdateVehicle);
     on<AddExpense>(_onAddExpense);
     on<AddPlanning>(_onAddPlanning);
     on<RemovePlanning>(_onRemovePlanning);
+    on<LoadPlannings>(_onLoadPlannings);
+    // Ajoutez d'autres événements si nécessaire
   }
 
   Future<void> _onLoadVehicles(
@@ -30,12 +33,30 @@ class VehicleBloc extends Bloc<VehicleEvent, VehicleState> {
     }
 
     emit(VehicleLoading());
+
     try {
       final vehicles = await vehicleRepository.getVehicles();
+      print("Véhicules chargés: ${vehicles.length}");
+
+      // Initialiser la carte des dépenses et plannings
+      Map<String, List<Expense>> expenses = {};
+      Map<String, List<Planning>> plannings = {};
+
+      // Récupérer les dépenses et plannings pour chaque véhicule
+      for (var vehicle in vehicles) {
+        final vehicleExpenses = await vehicleRepository.getExpenses(vehicle.id!);
+        expenses[vehicle.id!] = vehicleExpenses;
+        print("Véhicule ID: ${vehicle.id}, Nombre de dépenses: ${vehicleExpenses.length}");
+
+        final vehiclePlannings = await vehicleRepository.getPlannings(vehicle.id!);
+        plannings[vehicle.id!] = vehiclePlannings;
+        print("Véhicule ID: ${vehicle.id}, Nombre de plannings: ${vehiclePlannings.length}");
+      }
+
       emit(VehicleLoaded(
         vehicles: vehicles,
-        expenses: {}, // Exemple d'initialisation
-        plannings: {},
+        expenses: expenses,
+        plannings: plannings,
       ));
     } catch (e, stacktrace) {
       print("Erreur lors du chargement des véhicules : $e");
@@ -44,76 +65,69 @@ class VehicleBloc extends Bloc<VehicleEvent, VehicleState> {
     }
   }
 
-
-  Future<void> _onAddVehicle(
-      AddVehicle event, Emitter<VehicleState> emit) async {
-    if (event.vehicle.marque.isEmpty || event.vehicle.modele.isEmpty) {
-      emit(VehicleError(error: "Les champs du véhicule sont obligatoires."));
-      return;
-    }
-    try {
-      await vehicleRepository.addVehicle(event.vehicle);
-      add(LoadVehicles());
-    } catch (e) {
-      print("Erreur lors de l'ajout du véhicule : $e");
-      emit(VehicleError(error: "Impossible d'ajouter le véhicule."));
-    }
-  }
-
-  Future<void> _onUpdateVehicle(
-      UpdateVehicle event, Emitter<VehicleState> emit) async {
-    try {
-      await vehicleRepository.updateVehicle(event.vehicle);
-      add(LoadVehicles());
-    } catch (e) {
-      print("Erreur lors de la mise à jour du véhicule : $e");
-      emit(VehicleError(error: "Impossible de mettre à jour le véhicule."));
-    }
-  }
-
   Future<void> _onAddExpense(
       AddExpense event, Emitter<VehicleState> emit) async {
-    try {
-      await vehicleRepository.addExpense(event.expense);
-      add(LoadVehicles());
-    } catch (e) {
-      print("Erreur lors de l'ajout de la dépense : $e");
-      emit(VehicleError(error: "Impossible d'ajouter la dépense."));
+    if (state is VehicleLoaded) {
+      try {
+        await vehicleRepository.addExpense(event.expense);
+        // Recharger les véhicules et dépenses après ajout
+        add(LoadVehicles());
+      } catch (e) {
+        emit(VehicleError(error: "Erreur lors de l'ajout de la dépense."));
+      }
     }
   }
 
   Future<void> _onAddPlanning(
       AddPlanning event, Emitter<VehicleState> emit) async {
-    try {
-      await vehicleRepository.addPlanning(event.planning);
-
-      if (event.planning.sendNotification) {
-        NotificationService().scheduleNotification(
-          event.planning.hashCode,
-          'Rappel de planification',
-          'La planification pour ${event.planning.type} est prévue pour le ${event.planning.date}.',
-          event.planning.date,
-        );
+    if (state is VehicleLoaded) {
+      try {
+        await vehicleRepository.addPlanning(event.planning);
+        // Recharger les plannings après ajout
+        add(LoadVehicles());
+      } catch (e) {
+        emit(VehicleError(error: "Erreur lors de l'ajout du planning."));
       }
-
-      add(LoadVehicles());
-    } catch (e) {
-      print("Erreur lors de l'ajout de la planification : $e");
-      emit(VehicleError(error: "Impossible d'ajouter la planification."));
     }
   }
 
   Future<void> _onRemovePlanning(
       RemovePlanning event, Emitter<VehicleState> emit) async {
+    if (state is VehicleLoaded) {
+      try {
+        await vehicleRepository.removePlanning(event.vehicleId, event.planningId);
+        // Recharger les plannings après suppression
+        add(LoadVehicles());
+      } catch (e) {
+        emit(VehicleError(error: "Erreur lors de la suppression du planning."));
+      }
+    }
+  }
+
+  Future<void> _onLoadPlannings(
+      LoadPlannings event, Emitter<VehicleState> emit) async {
+    final userId = FirebaseAuth.instance.currentUser?.uid;
+
+    if (userId == null) {
+      emit(VehicleError(error: "Vous devez être connecté pour charger les plannings."));
+      return;
+    }
+
     try {
-      await vehicleRepository.removePlanning(event.vehicleId, event.planningId);
+      final plannings = await vehicleRepository.getPlannings(event.vehicleId);
+      if (state is VehicleLoaded) {
+        final currentState = state as VehicleLoaded;
+        final updatedPlannings = Map<String, List<Planning>>.from(currentState.plannings);
+        updatedPlannings[event.vehicleId] = plannings;
 
-      NotificationService().cancelNotification(event.planningId.hashCode);
-
-      add(LoadVehicles());
+        emit(VehicleLoaded(
+          vehicles: currentState.vehicles,
+          expenses: currentState.expenses,
+          plannings: updatedPlannings,
+        ));
+      }
     } catch (e) {
-      print("Erreur lors de la suppression de la planification : $e");
-      emit(VehicleError(error: "Impossible de supprimer la planification."));
+      emit(VehicleError(error: "Impossible de charger les plannings."));
     }
   }
 }

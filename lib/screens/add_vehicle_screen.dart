@@ -3,7 +3,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../blocs/vehicle/vehicle_bloc.dart';
-import '../blocs/vehicle/vehicle_event.dart';
 import '../models/vehicle.dart';
 
 class AddVehicleScreen extends StatelessWidget {

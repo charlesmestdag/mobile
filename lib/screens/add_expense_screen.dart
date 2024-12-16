@@ -1,9 +1,9 @@
+// lib/screens/add_expense_screen.dart
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 import '../blocs/vehicle/vehicle_bloc.dart';
-import '../blocs/vehicle/vehicle_event.dart';
 import '../models/expense.dart';
 import '../models/vehicle.dart';
 import 'dart:io';
@@ -58,8 +58,14 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
   }
 
   void _saveExpense() {
+    if (typeController.text.isEmpty || costController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Veuillez remplir tous les champs.')),
+      );
+      return;
+    }
+
     final expense = Expense(
-      id: DateTime.now().toString(),
       vehicleId: widget.vehicle.id!,
       type: typeController.text,
       cost: double.tryParse(costController.text) ?? 0.0,
@@ -72,55 +78,63 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
   }
 
   @override
+  void dispose() {
+    typeController.dispose();
+    costController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Ajouter une dépense')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            TextField(
-              controller: typeController,
-              decoration: const InputDecoration(labelText: 'Type de dépense'),
-            ),
-            TextField(
-              controller: costController,
-              decoration: const InputDecoration(labelText: 'Coût'),
-              keyboardType: TextInputType.number,
-            ),
-            const SizedBox(height: 16),
-            TextButton(
-              onPressed: () => _selectDate(context),
-              child:
-              Text('Sélectionner la date: ${selectedDate.toLocal()}'.split(' ')[0]),
-            ),
-            const SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                ElevatedButton.icon(
-                  onPressed: _pickImage,
-                  icon: const Icon(Icons.photo),
-                  label: const Text('Galerie'),
-                ),
-                ElevatedButton.icon(
-                  onPressed: _takePhoto,
-                  icon: const Icon(Icons.camera_alt),
-                  label: const Text('Caméra'),
-                ),
-              ],
-            ),
-            if (_selectedImage != null)
-              Padding(
-                padding: const EdgeInsets.only(top: 16.0),
-                child: Image.file(_selectedImage!, height: 100),
+        child: SingleChildScrollView( // Pour éviter les débordements
+          child: Column(
+            children: [
+              TextField(
+                controller: typeController,
+                decoration: const InputDecoration(labelText: 'Type de dépense'),
               ),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: _saveExpense,
-              child: const Text('Ajouter la dépense'),
-            ),
-          ],
+              TextField(
+                controller: costController,
+                decoration: const InputDecoration(labelText: 'Coût'),
+                keyboardType: TextInputType.number,
+              ),
+              const SizedBox(height: 16),
+              TextButton(
+                onPressed: () => _selectDate(context),
+                child: Text('Sélectionner la date: ${selectedDate.toLocal()}'.split(' ')[0]),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  ElevatedButton.icon(
+                    onPressed: _pickImage,
+                    icon: const Icon(Icons.photo),
+                    label: const Text('Galerie'),
+                  ),
+                  ElevatedButton.icon(
+                    onPressed: _takePhoto,
+                    icon: const Icon(Icons.camera_alt),
+                    label: const Text('Caméra'),
+                  ),
+                ],
+              ),
+              if (_selectedImage != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 16.0),
+                  child: Image.file(_selectedImage!, height: 100),
+                ),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: _saveExpense,
+                child: const Text('Ajouter la dépense'),
+              ),
+            ],
+          ),
         ),
       ),
     );

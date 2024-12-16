@@ -1,9 +1,6 @@
 // lib/blocs/vehicle/vehicle_state.dart
 
-import 'package:equatable/equatable.dart';
-import '../../models/vehicle.dart';
-import '../../models/expense.dart';
-import '../../models/planning.dart';
+part of 'vehicle_bloc.dart';
 
 abstract class VehicleState extends Equatable {
   const VehicleState();
