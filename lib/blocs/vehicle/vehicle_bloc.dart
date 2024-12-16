@@ -16,11 +16,44 @@ class VehicleBloc extends Bloc<VehicleEvent, VehicleState> {
 
   VehicleBloc({required this.vehicleRepository}) : super(VehicleLoading()) {
     on<LoadVehicles>(_onLoadVehicles);
+    on<AddVehicle>(_onAddVehicle);
+    on<UpdateVehicle>(_onUpdateVehicle); // Enregistrement du gestionnaire
     on<AddExpense>(_onAddExpense);
     on<AddPlanning>(_onAddPlanning);
     on<RemovePlanning>(_onRemovePlanning);
     on<LoadPlannings>(_onLoadPlannings);
-    // Ajoutez d'autres événements si nécessaire
+    // Ajoutez d'autres gestionnaires d'événements si nécessaire
+  }
+
+  // **Gestionnaire pour ajouter un véhicule**
+  Future<void> _onAddVehicle(
+      AddVehicle event, Emitter<VehicleState> emit) async {
+    if (state is VehicleLoaded) {
+      try {
+        await vehicleRepository.addVehicle(event.vehicle);
+        print("Véhicule ajouté avec succès : ${event.vehicle.marque} ${event.vehicle.modele}");
+        // Recharger les véhicules après ajout
+        add(LoadVehicles());
+      } catch (e) {
+        print("Erreur lors de l'ajout du véhicule : $e");
+        emit(VehicleError(error: "Erreur lors de l'ajout du véhicule."));
+      }
+    }
+  }
+  // **Gestionnaire pour mettre à jour un véhicule**
+  Future<void> _onUpdateVehicle(
+      UpdateVehicle event, Emitter<VehicleState> emit) async {
+    if (state is VehicleLoaded) {
+      try {
+        await vehicleRepository.updateVehicle(event.vehicle);
+        print("Véhicule mis à jour avec succès : ${event.vehicle.marque} ${event.vehicle.modele}");
+        // Recharger les véhicules après mise à jour
+        add(LoadVehicles());
+      } catch (e) {
+        print("Erreur lors de la mise à jour du véhicule : $e");
+        emit(VehicleError(error: "Erreur lors de la mise à jour du véhicule."));
+      }
+    }
   }
 
   Future<void> _onLoadVehicles(
