@@ -216,5 +216,6 @@ class VehicleRepository {
     }
   }
 
+
 // Autres méthodes si nécessaire
 }

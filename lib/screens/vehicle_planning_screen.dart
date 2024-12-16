@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../blocs/vehicle/vehicle_bloc.dart';
-
 import '../models/vehicle.dart';
+import '../blocs/vehicle/vehicle_bloc.dart';
+import '../services/notification_service.dart';
 import 'add_planning_screen.dart';
 
 class VehiclePlanningScreen extends StatelessWidget {
@@ -10,6 +10,18 @@ class VehiclePlanningScreen extends StatelessWidget {
 
   const VehiclePlanningScreen({Key? key, required this.vehicle})
       : super(key: key);
+
+  void _sendNotification(BuildContext context) {
+    NotificationService().sendImmediateNotification(
+      0, // ID unique pour éviter les conflits
+      'Rappel de planification',
+      'Une planification pour ${vehicle.marque} ${vehicle.modele} a été ajoutée.',
+    );
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Notification envoyée au centre de notifications.')),
+    );
+  }
 
   void _removePlanning(BuildContext context, String planningId) {
     context.read<VehicleBloc>().add(RemovePlanning(
@@ -65,16 +77,33 @@ class VehiclePlanningScreen extends StatelessWidget {
           }
         },
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (_) => AddPlanningScreen(vehicle: vehicle),
+      floatingActionButton: Stack(
+        children: [
+          Positioned(
+            bottom: 80,
+            right: 16,
+            child: FloatingActionButton(
+              onPressed: () => _sendNotification(context),
+              tooltip: 'Envoyer une notification',
+              child: const Icon(Icons.notification_important),
             ),
-          );
-        },
-        tooltip: 'Ajouter une planification',
-        child: const Icon(Icons.add),
+          ),
+          Positioned(
+            bottom: 16,
+            right: 16,
+            child: FloatingActionButton(
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => AddPlanningScreen(vehicle: vehicle),
+                  ),
+                );
+              },
+              tooltip: 'Ajouter une planification',
+              child: const Icon(Icons.add),
+            ),
+          ),
+        ],
       ),
     );
   }
