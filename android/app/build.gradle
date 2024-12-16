@@ -6,7 +6,7 @@ plugins {
     // Le plugin Flutter Gradle doit être appliqué après les plugins Android et Kotlin.
     id "dev.flutter.flutter-gradle-plugin"
     // Ajoutez le plugin Google Services
-    id 'com.google.gms.google-services'
+    //id 'com.google.gms.google-services'
 }
 
 android {
@@ -52,4 +52,4 @@ dependencies {
 }
 
 // Appliquez le plugin Google Services à la fin
-apply plugin: 'com.google.gms.google-services'
+//apply plugin: 'com.google.gms.google-services'
