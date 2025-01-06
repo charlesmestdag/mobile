@@ -58,7 +58,6 @@ class VehicleDetailScreen extends StatelessWidget {
     await generatePdf(context, vehicle, expenses);
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -99,8 +98,8 @@ class VehicleDetailScreen extends StatelessWidget {
       body: BlocBuilder<VehicleBloc, VehicleState>(
         builder: (context, state) {
           if (state is VehicleLoaded) {
-            final expenses = state.expenses[vehicle.id] ?? [];
-            final totalCost = state.totalCost("Bu5KZGg1ZSh2ATRqUasj"); // Calcule le total ici
+            final expenses = state.expenses[vehicle.id!] ?? []; // Gérer l'ID du véhicule
+            final totalCost = state.totalCost(vehicle.id!); // Utilisation correcte de l'ID
 
             return Padding(
               padding: const EdgeInsets.all(16.0),
@@ -112,7 +111,7 @@ class VehicleDetailScreen extends StatelessWidget {
                   Text('Année : ${vehicle.annee}', style: const TextStyle(fontSize: 18)),
                   const SizedBox(height: 16),
                   Text(
-                    'Total des coûts : ${totalCost.toStringAsFixed(2)}€', // Affiche le total
+                    'Total des coûts : ${totalCost.toStringAsFixed(2)} €',
                     style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 16),
@@ -141,7 +140,7 @@ class VehicleDetailScreen extends StatelessWidget {
                           child: ListTile(
                             title: Text(expense.type),
                             subtitle: Text(
-                                'Coût: ${expense.cost}€ - Date: ${expense.date.toLocal().toString().split(' ')[0]}'),
+                                'Coût: ${expense.cost} € - Date: ${expense.date.toLocal().toString().split(' ')[0]}'),
                             onTap: () {
                               Navigator.of(context).push(
                                 MaterialPageRoute(

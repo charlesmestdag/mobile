@@ -29,6 +29,7 @@ class VehicleLoaded extends VehicleState {
     return vehicleExpenses.fold(0.0, (sum, expense) => sum + expense.cost);
   }
 
+
   @override
   List<Object?> get props => [vehicles, expenses, plannings];
 }
